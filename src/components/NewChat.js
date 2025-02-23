@@ -104,33 +104,34 @@ export default function NewChat() {
       ],
     },
   ];
-  
 
   const [chats, setChats] = useState(initialChats);
   const [activeChat, setActiveChat] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [newMessage, setNewMessage] = useState("");
+  const [attachment, setAttachment] = useState(null);
 
-  // Filter chats based on search query (name or last message)
   const filteredChats = chats.filter(
     (chat) =>
       chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       chat.message.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Handle sending new messages
   const sendMessage = () => {
-    if (!newMessage.trim() || !activeChat) return;
+    if ((!newMessage.trim() && !attachment) || !activeChat) return;
+
+    const newChatMessage = {
+      sender: "You",
+      text: newMessage,
+      attachment: attachment ? URL.createObjectURL(attachment) : null,
+    };
 
     const updatedChats = chats.map((chat) =>
       chat.id === activeChat.id
         ? {
             ...chat,
-            conversation: [
-              ...chat.conversation,
-              { sender: "You", text: newMessage },
-            ],
-            message: newMessage,
+            conversation: [...chat.conversation, newChatMessage],
+            message: newMessage || "📎 Attachment",
             time: new Date().toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
@@ -142,11 +143,11 @@ export default function NewChat() {
     setChats(updatedChats);
     setActiveChat(updatedChats.find((c) => c.id === activeChat.id));
     setNewMessage("");
+    setAttachment(null);
   };
 
   return (
     <div className="chat-container">
-      {/* Sidebar */}
       <div className="sidebar">
         <div className="menu-icon">☰</div>
         <div className="sidebar-icons">
@@ -157,7 +158,6 @@ export default function NewChat() {
         <div className="settings">⚙️</div>
       </div>
 
-      {/* Chat List */}
       <div className="chat-list">
         <div className="chat-header">
           <h2>Chats</h2>
@@ -188,7 +188,6 @@ export default function NewChat() {
         ))}
       </div>
 
-      {/* Chat Window */}
       <div className="chat-window">
         {activeChat ? (
           <>
@@ -201,6 +200,9 @@ export default function NewChat() {
                   className={`message ${msg.sender === "You" ? "sent" : "received"}`}
                 >
                   {msg.text}
+                  {msg.attachment && (
+                    <a href={msg.attachment} download> 📎 Download</a>
+                  )}
                 </div>
               ))}
             </div>
@@ -214,6 +216,17 @@ export default function NewChat() {
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                 className="message-input"
               />
+              <input
+                type="file"
+                id="file-upload"
+                style={{ display: "none" }}
+                onChange={(e) => setAttachment(e.target.files[0])}
+              />
+
+              {/* Plus Icon for File Upload */}
+              <label htmlFor="file-upload" className="plus-icon">
+                ➕
+              </label>  
               <button onClick={sendMessage}>➤</button>
             </div>
           </>

@@ -1,4 +1,9 @@
 
+.plus-icon {
+    cursor: pointer;
+    margin-top: 10px;
+    font-size: 20px; /* Adjust the size if needed */
+  }
   
   .chat-container {
     display: flex;
